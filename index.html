@@ -11,6 +11,47 @@
             font-family: Arial, sans-serif;
         }
 
+        #ball {
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+            transition: transform 0.1s ease-out; /* Added for smoother ball movement */
+        }
+
+        .trail {
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+            opacity: 0.5;
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out; /* Added for smoother trail animation */
+        }
+
+        #tutorial {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(5, 5, 5, 0.5);
+            color: white;
+            font-size: 20px;
+            padding: 20px;
+            z-index: 100;
+        }
+
+        #scoreboard {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 18px;
+            text-align: right;
+        }
+
         #loadingScreen {
             position: fixed;
             top: 0;
