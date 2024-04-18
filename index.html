@@ -129,6 +129,41 @@
             scoreboard.textContent = bounces;
         }
 
+        // Performance logging
+        var performanceLog = [];
+
+        function logPerformance() {
+            var currentTime = Date.now();
+            var frameRate = 1000 / (currentTime - lastFrameTime);
+            var performance = {
+                time: currentTime,
+                frameRate: frameRate
+            };
+            performanceLog.push(performance);
+            lastFrameTime = currentTime;
+        }
+
+        var lastFrameTime = Date.now();
+        setInterval(logPerformance, 1000); // Log performance every second
+
+        // Write performance log to file
+        function writePerformanceLogToFile() {
+            var logContent = JSON.stringify(performanceLog, null, 2);
+            var blob = new Blob([logContent], { type: 'text/plain' });
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'performancelog.txt';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Save game state to local storage
+        function saveGameState() {
+            localStorage.setItem('bounces', bounces);
+        }
+
         function createTrail(x, y) {
             var trail = document.createElement('div');
             trail.classList.add('trail');
@@ -167,8 +202,7 @@
             ball.style.left = x + 'px';
             ball.style.top = y + 'px';
 
-            // Save game state to local storage
-            localStorage.setItem('bounces', bounces);
+            saveGameState();
         }
 
         function handleClick() {
@@ -259,7 +293,12 @@
         }, false);
 
         disableFingerZooming();
+
+        window.addEventListener('beforeunload', function() {
+            writePerformanceLogToFile();
+        });
     });
 </script>
 </body>
 </html>
+
