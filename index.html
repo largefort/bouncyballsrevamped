@@ -106,6 +106,7 @@
     <p>Click anywhere to continue.</p>
 </div>
 <div id="scoreboard">Bounces: <span id="bounces">0</span></div>
+<button id="upgradeButton">Upgrade (+1 Red Ball)</button>
 <audio id="bounceSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
 <audio id="trailSound" src="https://www.soundjay.com/button/beep-05.wav"></audio>
 <script>
@@ -259,6 +260,29 @@
         }, false);
 
         disableFingerZooming();
+        
+        var upgradeButton = document.getElementById('upgradeButton');
+        var maxBalls = 10;
+        
+        upgradeButton.addEventListener('click', function() {
+            if (document.getElementsByClassName('extraBall').length < maxBalls) {
+                createBall();
+            }
+        });
+        
+        function createBall() {
+            var ball = document.createElement('div');
+            ball.classList.add('extraBall'); // Add a class to identify extra balls
+            ball.style.width = '50px';
+            ball.style.height = '50px';
+            ball.style.backgroundColor = 'red';
+            ball.style.borderRadius = '50%';
+            ball.style.position = 'absolute';
+            ball.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+            ball.style.top = Math.random() * (window.innerHeight - 50) + 'px';
+            document.body.appendChild(ball);
+        }
+
     });
 </script>
 </body>
