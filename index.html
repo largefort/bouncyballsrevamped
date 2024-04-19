@@ -109,7 +109,7 @@
 <audio id="bounceSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
 <audio id="trailSound" src="https://www.soundjay.com/button/beep-05.wav"></audio>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         var ball = document.getElementById('ball');
         var tutorial = document.getElementById('tutorial');
         var scoreboard = document.getElementById('bounces');
@@ -129,62 +129,17 @@
             scoreboard.textContent = bounces;
         }
 
-        // Performance logging
-        var performanceLog = [];
-
-        function logPerformance() {
-            var currentTime = Date.now();
-            var frameRate = 1000 / (currentTime - lastFrameTime);
-            var performance = {
-                time: currentTime,
-                frameRate: frameRate
-            };
-            performanceLog.push(performance);
-            lastFrameTime = currentTime;
-        }
-
-        var lastFrameTime = Date.now();
-        setInterval(logPerformance, 1000); // Log performance every second
-
-        // Write performance log to file
-        function writePerformanceLog() {
-            var logContent = JSON.stringify(performanceLog, null, 2);
-            if (typeof window !== 'undefined') {
-                // Browser version
-                if (navigator.msSaveBlob) {
-                    // For Internet Explorer
-                    navigator.msSaveBlob(new Blob([logContent], { type: 'text/plain' }), 'performancelog.txt');
-                } else {
-                    var a = document.createElement('a');
-                    a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(logContent);
-                    a.download = 'performancelog.txt';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                }
-            } else {
-                // Node.js version
-                const fs = require('fs');
-                fs.writeFileSync('performancelog.txt', logContent);
-            }
-        }
-
-        // Save game state to local storage
-        function saveGameState() {
-            localStorage.setItem('bounces', bounces);
-        }
-
         function createTrail(x, y) {
             var trail = document.createElement('div');
             trail.classList.add('trail');
             trail.style.left = x + 'px';
             trail.style.top = y + 'px';
             document.body.appendChild(trail);
-            setTimeout(function () {
+            setTimeout(function() {
                 trail.style.transform = 'scale(0)'; // Make the trail shrink after a delay
                 trail.style.opacity = '0'; // Fade out the trail
             }, 50);
-            setTimeout(function () {
+            setTimeout(function() {
                 trail.parentNode.removeChild(trail); // Remove the trail from the DOM after animation
             }, 500);
             trailSound.play();
@@ -212,7 +167,8 @@
             ball.style.left = x + 'px';
             ball.style.top = y + 'px';
 
-            saveGameState();
+            // Save game state to local storage
+            localStorage.setItem('bounces', bounces);
         }
 
         function handleClick() {
@@ -231,11 +187,24 @@
         }
 
         function disableFingerZooming() {
-            document.addEventListener('touchmove', function (event) {
+            document.addEventListener('touchmove', function(event) {
                 if (event.scale !== 1) {
                     event.preventDefault();
                 }
             }, { passive: false });
+        }
+
+        function loadFile(url, callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        callback(xhr.responseText);
+                    }
+                }
+            };
+            xhr.open('GET', url, true);
+            xhr.send();
         }
 
         function updateLoadingText(text) {
@@ -249,28 +218,39 @@
             document.getElementById('progress').style.width = progressPercentage + '%';
         }
 
-        updateLoadingText('Drawing animated trail effect...');
-        setTimeout(function () {
-            document.getElementById('loadingScreen').style.display = 'none';
-            setInterval(moveBall, 10); // Move the ball automatically
-        }, 2000);
+        loadFile('index.html', function(responseText) {
+            var totalBytes = (responseText.length / 1024).toFixed(2);
+            updateProgressBar(0, totalBytes);
+            updateLoadingText('Loading ball physics...');
+            setTimeout(function() {
+                updateProgressBar(totalBytes, totalBytes);
+                updateLoadingText('Drawing ball...');
+                setTimeout(function() {
+                    updateLoadingText('Drawing animated trail effect...');
+                    setTimeout(function() {
+                        document.getElementById('loadingScreen').style.display = 'none';
+                        setInterval(moveBall, 10); // Move the ball automatically
+                    }, 2000);
+                }, 2000);
+            }, 2000);
+        });
 
         ball.addEventListener('click', handleClick);
-        tutorial.addEventListener('click', function () {
+        tutorial.addEventListener('click', function() {
             document.body.removeChild(tutorial);
         });
 
-        document.addEventListener('mousemove', function (event) {
+        document.addEventListener('mousemove', function(event) {
             createTrail(event.clientX, event.clientY); // Create a trail at the current mouse position
         });
 
-        document.addEventListener('touchmove', function (event) {
+        document.addEventListener('touchmove', function(event) {
             var touch = event.touches[0];
             createTrail(touch.clientX, touch.clientY); // Create a trail at the current touch position
         });
 
         var lastTouchEnd = 0;
-        document.addEventListener('touchend', function (event) {
+        document.addEventListener('touchend', function(event) {
             var now = (new Date()).getTime();
             if (now - lastTouchEnd <= 300) {
                 event.preventDefault();
@@ -279,10 +259,6 @@
         }, false);
 
         disableFingerZooming();
-
-        window.addEventListener('beforeunload', function () {
-            writePerformanceLog();
-        });
     });
 </script>
 </body>
