@@ -281,6 +281,30 @@
             ball.style.left = Math.random() * (window.innerWidth - 50) + 'px';
             ball.style.top = Math.random() * (window.innerHeight - 50) + 'px';
             document.body.appendChild(ball);
+            
+            var newX = window.innerWidth / 2; // Start in the middle of the screen
+            var newY = window.innerHeight / 2; // Start in the middle of the screen
+            var newXDirection = Math.random() > 0.5 ? 1 : -1;
+            var newYDirection = Math.random() > 0.5 ? 1 : -1;
+            var newXSpeed = Math.random() * 2 + 1;
+            var newYSpeed = Math.random() * 2 + 1;
+            
+            setInterval(function() {
+                newX += newXDirection * newXSpeed;
+                newY += newYDirection * newYSpeed;
+
+                if (newX > window.innerWidth - 50 || newX < 0) {
+                    newXDirection *= -1;
+                    createTrail(newX, newY); // Create a trail at the current ball position
+                }
+                if (newY > window.innerHeight - 50 || newY < 0) {
+                    newYDirection *= -1;
+                    createTrail(newX, newY); // Create a trail at the current ball position
+                }
+
+                ball.style.left = newX + 'px';
+                ball.style.top = newY + 'px';
+            }, 10);
         }
 
     });
