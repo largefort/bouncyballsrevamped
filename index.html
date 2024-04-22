@@ -92,9 +92,9 @@
 </head>
 <body>
 <div id="loadingScreen">
-    <div id="loadingText">Loading index.html...</div>
+    <div id="loadingText">Loading...</div>
     <div class="progress-bar">
-        <div id="progress" class="progress-bar-inner">0 KB / -- KB</div>
+        <div id="progress" class="progress-bar-inner">0%</div>
     </div>
 </div>
 <div id="tutorial">
@@ -156,6 +156,28 @@
                 ball.style.left = x + 'px';
                 ball.style.top = y + 'px';
             }, 10);
+            
+            // Save ball state to local storage
+            saveBallsState();
+        }
+        
+        function saveBallsState() {
+            localStorage.setItem('balls', JSON.stringify(balls.map(function(ball) {
+                return {
+                    left: ball.style.left,
+                    top: ball.style.top
+                };
+            })));
+        }
+        
+        function loadBallsState() {
+            var savedBalls = localStorage.getItem('balls');
+            if (savedBalls) {
+                var parsedBalls = JSON.parse(savedBalls);
+                parsedBalls.forEach(function(ballState) {
+                    createBall(parseFloat(ballState.left), parseFloat(ballState.top));
+                });
+            }
         }
 
         function createTrail(x, y) {
@@ -183,67 +205,9 @@
             return color;
         }
 
-        var upgradeButton = document.getElementById('upgradeButton');
-        upgradeButton.addEventListener('click', function() {
-            if (balls.length < maxBalls) {
-                createBall(Math.random() * (window.innerWidth - 50), Math.random() * (window.innerHeight - 50));
-            }
-        });
-
-        var lastTouchEnd = 0;
-        document.addEventListener('touchend', function(event) {
-            var now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-
-        var loadingText = document.getElementById('loadingText');
-        var progressText = document.getElementById('progress');
-        var loadingScreen = document.getElementById('loadingScreen');
-
-        function updateLoadingText(text) {
-            loadingText.textContent = text;
-        }
-
-        function updateProgressBar(loadedBytes, totalBytes) {
-            var progressPercentage = (loadedBytes / totalBytes) * 100;
-            progressText.textContent = loadedBytes + ' KB / ' + totalBytes + ' KB';
-            progressText.style.width = progressPercentage + '%';
-        }
-
-        function loadFile(url, callback) {
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    if (xhr.status === 200) {
-                        callback(xhr.responseText);
-                    }
-                }
-            };
-            xhr.onprogress = function(event) {
-                updateProgressBar(event.loaded / 1024, event.total / 1024);
-            };
-            xhr.open('GET', url, true);
-            xhr.send();
-        }
-
-        updateLoadingText('Loading index.html...');
-        loadFile('index.html', function(responseText) {
-            setTimeout(function() {
-                updateLoadingText('Drawing ball...');
-                setTimeout(function() {
-                    updateLoadingText('Drawing animated trail effect...');
-                    setTimeout(function() {
-                        loadingScreen.style.display = 'none';
-                    }, 2000);
-                }, 2000);
-            }, 2000);
-        });
-
         tutorial.addEventListener('click', function() {
-            document.body.removeChild(tutorial);
+            tutorial.style.display = 'none';
+            loadBallsState();
         });
 
         document.addEventListener('mousemove', function(event) {
@@ -255,6 +219,34 @@
             createTrail(touch.clientX, touch.clientY);
         });
 
+        var lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            var now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        var upgradeButton = document.getElementById('upgradeButton');
+        
+        upgradeButton.addEventListener('click', function() {
+            if (balls.length < maxBalls) {
+                var x = Math.random() * (window.innerWidth - 50);
+                var y = Math.random() * (window.innerHeight - 50);
+                createBall(x, y);
+            }
+        });
+        
+        function disableFingerZooming() {
+            document.addEventListener('touchmove', function(event) {
+                if (event.scale !== 1) {
+                    event.preventDefault();
+                }
+            }, { passive: false });
+        }
+        
+        disableFingerZooming();
     });
 </script>
 </body>
