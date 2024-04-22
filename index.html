@@ -11,7 +11,7 @@
             font-family: Arial, sans-serif;
         }
 
-        #ball {
+        .ball {
             width: 50px;
             height: 50px;
             background-color: red;
@@ -97,7 +97,6 @@
         <div id="progress" class="progress-bar-inner">0 KB / -- KB</div>
     </div>
 </div>
-<div id="ball"></div>
 <div id="tutorial">
     <p>Welcome to the bouncy balls tutorial!</p>
     <p>This is a bouncy ball. It bounces around the screen.</p>
@@ -111,23 +110,52 @@
 <audio id="trailSound" src="https://www.soundjay.com/button/beep-05.wav"></audio>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        var ball = document.getElementById('ball');
         var tutorial = document.getElementById('tutorial');
         var scoreboard = document.getElementById('bounces');
         var bounceSound = document.getElementById('bounceSound');
         var trailSound = document.getElementById('trailSound');
-        var x = window.innerWidth / 2; // Start in the middle of the screen
-        var y = window.innerHeight / 2; // Start in the middle of the screen
-        var xDirection = 1;
-        var yDirection = 1;
-        var xSpeed = 1;
-        var ySpeed = 1;
         var bounces = 0;
+        var maxBalls = 10;
+        var balls = [];
 
-        // Load game state from local storage
-        if (localStorage.getItem('bounces')) {
-            bounces = parseInt(localStorage.getItem('bounces'));
-            scoreboard.textContent = bounces;
+        function createBall(x, y) {
+            var ball = document.createElement('div');
+            ball.classList.add('ball');
+            ball.style.left = x + 'px';
+            ball.style.top = y + 'px';
+            document.body.appendChild(ball);
+            balls.push(ball);
+            ball.addEventListener('click', function() {
+                var xSpeed = Math.random() * 2 + 1;
+                var ySpeed = Math.random() * 2 + 1;
+                ball.style.backgroundColor = getRandomColor();
+            });
+            var newXDirection = Math.random() > 0.5 ? 1 : -1;
+            var newYDirection = Math.random() > 0.5 ? 1 : -1;
+            var newXSpeed = Math.random() * 2 + 1;
+            var newYSpeed = Math.random() * 2 + 1;
+            setInterval(function() {
+                x += newXDirection * newXSpeed;
+                y += newYDirection * newYSpeed;
+
+                if (x > window.innerWidth - 50 || x < 0) {
+                    newXDirection *= -1;
+                    createTrail(x, y);
+                    bounces++;
+                    scoreboard.textContent = bounces;
+                    bounceSound.play();
+                }
+                if (y > window.innerHeight - 50 || y < 0) {
+                    newYDirection *= -1;
+                    createTrail(x, y);
+                    bounces++;
+                    scoreboard.textContent = bounces;
+                    bounceSound.play();
+                }
+
+                ball.style.left = x + 'px';
+                ball.style.top = y + 'px';
+            }, 10);
         }
 
         function createTrail(x, y) {
@@ -137,45 +165,13 @@
             trail.style.top = y + 'px';
             document.body.appendChild(trail);
             setTimeout(function() {
-                trail.style.transform = 'scale(0)'; // Make the trail shrink after a delay
-                trail.style.opacity = '0'; // Fade out the trail
+                trail.style.transform = 'scale(0)';
+                trail.style.opacity = '0';
             }, 50);
             setTimeout(function() {
-                trail.parentNode.removeChild(trail); // Remove the trail from the DOM after animation
+                trail.parentNode.removeChild(trail);
             }, 500);
             trailSound.play();
-        }
-
-        function moveBall() {
-            x += xDirection * xSpeed;
-            y += yDirection * ySpeed;
-
-            if (x > window.innerWidth - 50 || x < 0) {
-                xDirection *= -1;
-                createTrail(x, y); // Create a trail at the current ball position
-                bounces++;
-                scoreboard.textContent = bounces;
-                bounceSound.play();
-            }
-            if (y > window.innerHeight - 50 || y < 0) {
-                yDirection *= -1;
-                createTrail(x, y); // Create a trail at the current ball position
-                bounces++;
-                scoreboard.textContent = bounces;
-                bounceSound.play();
-            }
-
-            ball.style.left = x + 'px';
-            ball.style.top = y + 'px';
-
-            // Save game state to local storage
-            localStorage.setItem('bounces', bounces);
-        }
-
-        function handleClick() {
-            var xSpeed = Math.random() * 2 + 1;
-            var ySpeed = Math.random() * 2 + 1;
-            ball.style.backgroundColor = getRandomColor();
         }
 
         function getRandomColor() {
@@ -187,67 +183,11 @@
             return color;
         }
 
-        function disableFingerZooming() {
-            document.addEventListener('touchmove', function(event) {
-                if (event.scale !== 1) {
-                    event.preventDefault();
-                }
-            }, { passive: false });
-        }
-
-        function loadFile(url, callback) {
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    if (xhr.status === 200) {
-                        callback(xhr.responseText);
-                    }
-                }
-            };
-            xhr.open('GET', url, true);
-            xhr.send();
-        }
-
-        function updateLoadingText(text) {
-            document.getElementById('loadingText').textContent = text;
-        }
-
-        function updateProgressBar(loadedBytes, totalBytes) {
-            var progressText = loadedBytes + ' KB / ' + totalBytes + ' KB';
-            var progressPercentage = (loadedBytes / totalBytes) * 100;
-            document.getElementById('progress').textContent = progressText;
-            document.getElementById('progress').style.width = progressPercentage + '%';
-        }
-
-        loadFile('index.html', function(responseText) {
-            var totalBytes = (responseText.length / 1024).toFixed(2);
-            updateProgressBar(0, totalBytes);
-            updateLoadingText('Loading ball physics...');
-            setTimeout(function() {
-                updateProgressBar(totalBytes, totalBytes);
-                updateLoadingText('Drawing ball...');
-                setTimeout(function() {
-                    updateLoadingText('Drawing animated trail effect...');
-                    setTimeout(function() {
-                        document.getElementById('loadingScreen').style.display = 'none';
-                        setInterval(moveBall, 10); // Move the ball automatically
-                    }, 2000);
-                }, 2000);
-            }, 2000);
-        });
-
-        ball.addEventListener('click', handleClick);
-        tutorial.addEventListener('click', function() {
-            document.body.removeChild(tutorial);
-        });
-
-        document.addEventListener('mousemove', function(event) {
-            createTrail(event.clientX, event.clientY); // Create a trail at the current mouse position
-        });
-
-        document.addEventListener('touchmove', function(event) {
-            var touch = event.touches[0];
-            createTrail(touch.clientX, touch.clientY); // Create a trail at the current touch position
+        var upgradeButton = document.getElementById('upgradeButton');
+        upgradeButton.addEventListener('click', function() {
+            if (balls.length < maxBalls) {
+                createBall(Math.random() * (window.innerWidth - 50), Math.random() * (window.innerHeight - 50));
+            }
         });
 
         var lastTouchEnd = 0;
@@ -259,53 +199,61 @@
             lastTouchEnd = now;
         }, false);
 
-        disableFingerZooming();
-        
-        var upgradeButton = document.getElementById('upgradeButton');
-        var maxBalls = 10;
-        
-        upgradeButton.addEventListener('click', function() {
-            if (document.getElementsByClassName('extraBall').length < maxBalls) {
-                createBall();
-            }
-        });
-        
-        function createBall() {
-            var ball = document.createElement('div');
-            ball.classList.add('extraBall'); // Add a class to identify extra balls
-            ball.style.width = '50px';
-            ball.style.height = '50px';
-            ball.style.backgroundColor = 'red';
-            ball.style.borderRadius = '50%';
-            ball.style.position = 'absolute';
-            ball.style.left = Math.random() * (window.innerWidth - 50) + 'px';
-            ball.style.top = Math.random() * (window.innerHeight - 50) + 'px';
-            document.body.appendChild(ball);
-            
-            var newX = window.innerWidth / 2; // Start in the middle of the screen
-            var newY = window.innerHeight / 2; // Start in the middle of the screen
-            var newXDirection = Math.random() > 0.5 ? 1 : -1;
-            var newYDirection = Math.random() > 0.5 ? 1 : -1;
-            var newXSpeed = Math.random() * 2 + 1;
-            var newYSpeed = Math.random() * 2 + 1;
-            
-            setInterval(function() {
-                newX += newXDirection * newXSpeed;
-                newY += newYDirection * newYSpeed;
+        var loadingText = document.getElementById('loadingText');
+        var progressText = document.getElementById('progress');
+        var loadingScreen = document.getElementById('loadingScreen');
 
-                if (newX > window.innerWidth - 50 || newX < 0) {
-                    newXDirection *= -1;
-                    createTrail(newX, newY); // Create a trail at the current ball position
-                }
-                if (newY > window.innerHeight - 50 || newY < 0) {
-                    newYDirection *= -1;
-                    createTrail(newX, newY); // Create a trail at the current ball position
-                }
-
-                ball.style.left = newX + 'px';
-                ball.style.top = newY + 'px';
-            }, 10);
+        function updateLoadingText(text) {
+            loadingText.textContent = text;
         }
+
+        function updateProgressBar(loadedBytes, totalBytes) {
+            var progressPercentage = (loadedBytes / totalBytes) * 100;
+            progressText.textContent = loadedBytes + ' KB / ' + totalBytes + ' KB';
+            progressText.style.width = progressPercentage + '%';
+        }
+
+        function loadFile(url, callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        callback(xhr.responseText);
+                    }
+                }
+            };
+            xhr.onprogress = function(event) {
+                updateProgressBar(event.loaded / 1024, event.total / 1024);
+            };
+            xhr.open('GET', url, true);
+            xhr.send();
+        }
+
+        updateLoadingText('Loading index.html...');
+        loadFile('index.html', function(responseText) {
+            setTimeout(function() {
+                updateLoadingText('Drawing ball...');
+                setTimeout(function() {
+                    updateLoadingText('Drawing animated trail effect...');
+                    setTimeout(function() {
+                        loadingScreen.style.display = 'none';
+                    }, 2000);
+                }, 2000);
+            }, 2000);
+        });
+
+        tutorial.addEventListener('click', function() {
+            document.body.removeChild(tutorial);
+        });
+
+        document.addEventListener('mousemove', function(event) {
+            createTrail(event.clientX, event.clientY);
+        });
+
+        document.addEventListener('touchmove', function(event) {
+            var touch = event.touches[0];
+            createTrail(touch.clientX, touch.clientY);
+        });
 
     });
 </script>
