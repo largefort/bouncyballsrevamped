@@ -53,6 +53,7 @@
         }
 
         #loadingScreen {
+            display: none; /* Initially hide the loading screen */
             position: fixed;
             top: 0;
             left: 0;
@@ -270,54 +271,55 @@
             }
         });
         
-    function createBall() {
-    var ball = document.createElement('div');
-    ball.classList.add('extraBall'); // Add a class to identify extra balls
-    ball.style.width = '50px';
-    ball.style.height = '50px';
-    ball.style.backgroundColor = 'red';
-    ball.style.borderRadius = '50%';
-    ball.style.position = 'absolute';
-    ball.style.left = Math.random() * (window.innerWidth - 50) + 'px';
-    ball.style.top = Math.random() * (window.innerHeight - 50) + 'px';
-    document.body.appendChild(ball);
-    
-    var newX = parseFloat(ball.style.left); // Initial X position
-    var newY = parseFloat(ball.style.top); // Initial Y position
-    var newXDirection = Math.random() > 0.5 ? 1 : -1;
-    var newYDirection = Math.random() > 0.5 ? 1 : -1;
-    var newXSpeed = Math.random() * 2 + 1;
-    var newYSpeed = Math.random() * 2 + 1;
-    var bounces = 0; // Counter for bounces
+        function createBall() {
+            var ball = document.createElement('div');
+            ball.classList.add('extraBall'); // Add a class to identify extra balls
+            ball.style.width = '50px';
+            ball.style.height = '50px';
+            ball.style.backgroundColor = 'red';
+            ball.style.borderRadius = '50%';
+            ball.style.position = 'absolute';
+            ball.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+            ball.style.top = Math.random() * (window.innerHeight - 50) + 'px';
+            document.body.appendChild(ball);
+            
+            var newX = parseFloat(ball.style.left); // Initial X position
+            var newY = parseFloat(ball.style.top); // Initial Y position
+            var newXDirection = Math.random() > 0.5 ? 1 : -1;
+            var newYDirection = Math.random() > 0.5 ? 1 : -1;
+            var newXSpeed = Math.random() * 2 + 1;
+            var newYSpeed = Math.random() * 2 + 1;
+            var bounces = 0; // Counter for bounces
 
-    var intervalId = setInterval(function() {
-        newX += newXDirection * newXSpeed;
-        newY += newYDirection * newYSpeed;
+            var intervalId = setInterval(function() {
+                newX += newXDirection * newXSpeed;
+                newY += newYDirection * newYSpeed;
 
-        if (newX > window.innerWidth - 50 || newX < 0) {
-            newXDirection *= -1;
-            createTrail(newX, newY); // Create a trail at the current ball position
-            bounces++; // Increment bounce count
+                if (newX > window.innerWidth - 50 || newX < 0) {
+                    newXDirection *= -1;
+                    createTrail(newX, newY); // Create a trail at the current ball position
+                    bounces++; // Increment bounce count
+                }
+                if (newY > window.innerHeight - 50 || newY < 0) {
+                    newYDirection *= -1;
+                    createTrail(newX, newY); // Create a trail at the current ball position
+                    bounces++; // Increment bounce count
+                }
+
+                ball.style.left = newX + 'px';
+                ball.style.top = newY + 'px';
+
+                // Update bounce count on the ball
+                ball.dataset.bounces = bounces;
+
+                // Check if the ball has been removed from the DOM
+                if (!document.body.contains(ball)) {
+                    clearInterval(intervalId); // Stop the interval when ball is removed
+                }
+            }, 10);
         }
-        if (newY > window.innerHeight - 50 || newY < 0) {
-            newYDirection *= -1;
-            createTrail(newX, newY); // Create a trail at the current ball position
-            bounces++; // Increment bounce count
-        }
-
-        ball.style.left = newX + 'px';
-        ball.style.top = newY + 'px';
-
-        // Update bounce count on the ball
-        ball.dataset.bounces = bounces;
-
-        // Check if the ball has been removed from the DOM
-        if (!document.body.contains(ball)) {
-            clearInterval(intervalId); // Stop the interval when ball is removed
-        }
-    }, 10);
-}
     }); // Closing parenthesis for DOMContentLoaded event listener
 </script>
 </body>
 </html>
+
